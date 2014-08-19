@@ -1,5 +1,5 @@
 {
-  "name": "citeproc",
+  "name": "csl-convert",
   "description": "convert citation traits into csl",
   "version": "0.1.0",
   "repository": {
