@@ -7,70 +7,75 @@ var TRAITS = require('citeac-traits').properties;
 
 
 /**
- * Expose converter
- */
-
-module.exports = converter;
-
-
-/**
- * Converter
+ * Converts an object parsed in from citeac
+ * to convert to CSL data blob
  *
- * @param {Array} arr
+ * @param {Object} obj
  * @return {Object}
  * @api public
  */
 
-function converter(arr) {
+module.exports = function(obj) {
   var clean = {};
 
-  arr.forEach(function(trait){
-    var schema = TRAITS[trait.type];
+  for (var key in obj) {
+    if (!obj.hasOwnProperty(key)) continue;
 
-    if (!schema) return;
-    if (!schema.csl) return;
-    if (!schema.csl.length) return;
+    var data = obj[key];
+    var schema = TRAITS[key];
 
-    schema.csl.forEach(function(key){
-      display(clean, trait, schema, key)
+    if (!schema) continue;
+    if (!schema.csl) continue;
+    if (!schema.csl.length) continue;
+
+    var converted = convert(key, data, schema);
+    if (!converted) continue;
+
+    schema.csl.forEach(function(cslKey){
+      clean[cslKey] = converted;
     })
-  })
+  }
 
   return clean;
 }
 
 
 /**
- * display
+ * convert trait for CSL
  *
  * @api public
  */
 
 
-function display(clean, trait, schema, key) {
+function convert(key, data, schema) {
   if (schema.type == 'contributor') {
-    if (!clean[key]) clean[key] = [];
-    clean[key].push({family: trait.last, given: trait.first})
+    return data;
   }
 
+  if (!Array.isArray(data) || !data.length) return;
+
+  var first = data[0];
+
   if (schema.type == 'date') {
-    clean[key] = {"date-parts": [[]]};
-    var parts = clean[key]['date-parts'][0];
+    var obj = {"date-parts": [[]]};
+    var parts = obj['date-parts'][0];
 
-    if (typeof trait.year !== 'undefined') {
-      parts[0] = parseInt(trait.year);
+    if (typeof first.year !== 'undefined') {
+      parts[0] = parseInt(first.year);
     }
 
-    if (typeof trait.month !== 'undefined') {
-      parts[1] = parseInt(trait.month) + 1;
+    if (typeof first.month !== 'undefined') {
+      parts[1] = parseInt(first.month);
     }
 
-    if (typeof trait.day !== 'undefined') {
-      parts[2] = parseInt(trait.day);
+    if (typeof first.day !== 'undefined') {
+      parts[2] = parseInt(first.day);
     }
+
+    return obj;
   }
 
   if (schema.type == 'string' || schema.type == 'number') {
-    clean[key] = trait.content;
+    return first.content;
   }
 }

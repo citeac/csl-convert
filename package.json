@@ -1,13 +1,13 @@
 {
   "name": "csl-convert",
   "description": "convert citation traits into csl",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "repository": {
     "type": "git",
     "url": "git://github.com/citeac/csl-convert.git"
   },
   "dependencies": {
-    "citeac-traits": "*"
+    "citeac-traits": "0.3.0"
   },
   "devDependencies": {
     "mocha": "*",

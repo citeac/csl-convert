@@ -5,19 +5,21 @@ var expect = require('expect.js');
 describe('csl-convert', function(){
 
   describe('contributors', function(){
-    it('converts single correctly', function(){
-      var data = [{type: 'author', first: 'foo', last: 'bar' }]
+    it('ignores conversion', function(){
+      var data = {author: [{given: 'foo', family: 'bar'}]};
       var res = convert(data);
       expect(res.author).to.have.length(1)
       expect(res.author[0].family).to.eql('bar')
       expect(res.author[0].given).to.eql('foo')
     })
 
-    it('converts multiple correctly', function(){
-      var data = [
-        {type: 'author', first: 'foo', last: 'bar' },
-        {type: 'author', first: 'boom', last: 'baz' },
-      ]
+    it('ignores multiple correctly', function(){
+      var data = {
+        author: [
+          {given: 'foo', family: 'bar'},
+          {given: 'boom', family: 'baz'}
+        ]
+      }
       var res = convert(data);
       expect(res.author).to.have.length(2)
       expect(res.author[0].family).to.eql('bar')
@@ -26,39 +28,43 @@ describe('csl-convert', function(){
       expect(res.author[1].given).to.eql('boom')
     })
 
-    it('converts all contributors', function(){
-      expect(convert([{type: 'author', first:'f', last: 'l'}])).to.have.key('author')
-      expect(convert([{type: 'collectionEditor', first:'f', last: 'l'}])).to.have.key('collection-editor')
-      expect(convert([{type: 'composer', first:'f', last: 'l'}])).to.have.key('composer')
-      expect(convert([{type: 'sourceAuthor', first:'f', last: 'l'}])).to.have.key('container-author')
-      expect(convert([{type: 'director', first:'f', last: 'l'}])).to.have.key('director')
-      expect(convert([{type: 'managingEditor', first:'f', last: 'l'}])).to.have.key('editorial-director')
-      expect(convert([{type: 'illustrator', first:'f', last: 'l'}])).to.have.key('illustrator')
-      expect(convert([{type: 'interviewer', first:'f', last: 'l'}])).to.have.key('interviewer')
-      expect(convert([{type: 'recipientName', first:'f', last: 'l'}])).to.have.key('recipient')
-      expect(convert([{type: 'reviewAuthor', first:'f', last: 'l'}])).to.have.key('reviewed-author')
-      expect(convert([{type: 'translator', first:'f', last: 'l'}])).to.have.key('translator')
+    it('ignores all contributors', function(){
+      expect(convert({author: [{given:'f', family: 'l'}]})).to.have.key('author')
+      expect(convert({collection_editor: [{given:'f', family: 'l'}]})).to.have.key('collection-editor')
+      expect(convert({composer: [{given:'f', family: 'l'}]})).to.have.key('composer')
+      expect(convert({source_author: [{given:'f', family: 'l'}]})).to.have.key('container-author')
+      expect(convert({director: [{given:'f', family: 'l'}]})).to.have.key('director')
+      expect(convert({managing_editor: [{given:'f', family: 'l'}]})).to.have.key('editorial-director')
+      expect(convert({illustrator: [{given:'f', family: 'l'}]})).to.have.key('illustrator')
+      expect(convert({interviewer: [{given:'f', family: 'l'}]})).to.have.key('interviewer')
+      expect(convert({recipient_name: [{given:'f', family: 'l'}]})).to.have.key('recipient')
+      expect(convert({review_author: [{given:'f', family: 'l'}]})).to.have.key('reviewed-author')
+      expect(convert({translator: [{given:'f', family: 'l'}]})).to.have.key('translator')
     })
   })
 
   describe('dates', function(){
     it('converts year', function(){
-      var data = [{type: 'datePublished', year: '2010'}]
+      var data = {date_published: [{year: '2010'}]}
       var res = convert(data);
       expect(res.issued['date-parts'][0]).to.have.length(1)
       expect(res.issued['date-parts'][0][0]).eql('2010')
+      expect(res.issued['date-parts'][0][1]).be(undefined)
+      expect(res.issued['date-parts'][0][2]).be(undefined)
+
     })
 
     it('converts year/month', function(){
-      var data = [{type: 'datePublished', year: '1991', month: '0' }]
+      var data = {date_published: [{year: '1991', month: '1'}]}
       var res = convert(data);
       expect(res.issued['date-parts'][0]).to.have.length(2)
       expect(res.issued['date-parts'][0][0]).eql('1991')
       expect(res.issued['date-parts'][0][1]).eql('1')
+      expect(res.issued['date-parts'][0][2]).be(undefined)
     })
 
     it('converts year/month/day', function(){
-      var data = [{type: 'datePublished', year: '1991', month: '9', day: '25' }]
+      var data = {date_published: [{year: '1991', month: '10', day: '25' }]}
       var res = convert(data);
       expect(res.issued['date-parts'][0]).to.have.length(3)
       expect(res.issued['date-parts'][0][0]).eql('1991')
@@ -67,16 +73,16 @@ describe('csl-convert', function(){
     })
 
     it('converts all dates', function(){
-      expect(convert([{type: 'dateAccessed'}])).to.have.key('accessed')
-      expect(convert([{type: 'eventDate'}])).to.have.key('event-date')
-      expect(convert([{type: 'datePublished'}])).to.have.key('issued')
-      expect(convert([{type: 'sourceDatePublished'}])).to.have.key('original-date')
+      expect(convert({date_accessed: [{}]})).to.have.key('accessed')
+      expect(convert({event_date: [{}]})).to.have.key('event-date')
+      expect(convert({date_published: [{}]})).to.have.key('issued')
+      expect(convert({source_date_published: [{}]})).to.have.key('original-date')
     })
   })
 
   describe('strings', function(){
     it('converts correctly', function(){
-      var data = [{type: 'doi', content: 'foo bar'}]
+      var data = {doi: [{content: 'foo bar'}]}
       var res = convert(data);
       expect(res.DOI).to.eql('foo bar')
     })
@@ -84,7 +90,7 @@ describe('csl-convert', function(){
 
   describe('numbers', function(){
     it('converts correctly', function(){
-      var data = [{type: 'volume', content: 3}]
+      var data = {volume: [{content: 3}]}
       var res = convert(data);
       expect(res.volume).to.eql(3)
     })
